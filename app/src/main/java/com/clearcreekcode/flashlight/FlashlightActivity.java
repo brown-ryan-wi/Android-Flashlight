@@ -14,6 +14,7 @@ import java.util.List;
 
 public class FlashlightActivity extends ActionBarActivity {
 
+    //
     private Camera camera;
 
     @Override
