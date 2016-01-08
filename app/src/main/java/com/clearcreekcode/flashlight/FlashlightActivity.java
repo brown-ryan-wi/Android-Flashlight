@@ -1,30 +1,44 @@
 package com.clearcreekcode.flashlight;
 
+import android.content.Context;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.hardware.Camera;
+import android.os.PowerManager;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.RelativeLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.List;
 
 public class FlashlightActivity extends ActionBarActivity {
 
-    //
     private Camera camera;
+    private PowerManager.WakeLock wakeLock;
+    private boolean isSupported_FEATURE_CAMERA_FLASH;
+    private RelativeLayout rootLayout;
+    private TextView txtInstruction;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_flashlight);
 
-        Button btnFlashlight;
-        btnFlashlight = (Button) findViewById(R.id.btnFlashlight);
-        btnFlashlight.setOnClickListener(btnFlashlightClicked);
+        rootLayout = (RelativeLayout) findViewById(R.id.rootLayout);
+        rootLayout.setOnClickListener(btnFlashlightClicked);
+
+        txtInstruction = (TextView) findViewById(R.id.txtInstruction);
+
+        PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
+        wakeLock = pm.newWakeLock(PowerManager.FULL_WAKE_LOCK, getString(R.string.do_not_dim_screen));
+
+        isSupported_FEATURE_CAMERA_FLASH = getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA_FLASH);
     }
 
     View.OnClickListener btnFlashlightClicked = new View.OnClickListener() {
@@ -32,29 +46,12 @@ public class FlashlightActivity extends ActionBarActivity {
         @Override
         public void onClick(View view) {
             if( isFlashLightOn() ) {
-                turnFlashLightOff(view);
+                turnFlashLightOff();
             } else {
-                turnFlashLightOn(view);
+                turnFlashLightOn();
             }
-            Toast.makeText(view.getContext(),"Flashlight on", Toast.LENGTH_LONG).show();
         }
     };
-
-    private void turnFlashLightOff(View view)
-    {
-        if( view.getContext().getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA_FLASH) ) {
-            Camera.Parameters cameraParam = camera.getParameters();
-            List<String> flashModes = cameraParam.getSupportedFlashModes();
-            if( flashModes != null && flashModes.contains(cameraParam.FLASH_MODE_OFF) ) {
-                cameraParam.setFlashMode(cameraParam.FLASH_MODE_OFF);
-                camera.setParameters(cameraParam);
-            } else {
-                // TODO: FLASH_MODE_OFF not supported
-            }
-        } else {
-            // TODO: Flash not supported
-        }
-    }
 
     private boolean isFlashLightOn()
     {
@@ -62,20 +59,44 @@ public class FlashlightActivity extends ActionBarActivity {
         return cameraParam.getFlashMode().equals(cameraParam.FLASH_MODE_TORCH);
     }
 
-    private void turnFlashLightOn(View view)
+    private void turnFlashLightOn()
     {
-        if( view.getContext().getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA_FLASH) ) {
+        if( isSupported_FEATURE_CAMERA_FLASH ) {
             Camera.Parameters cameraParam = camera.getParameters();
             List<String> flashModes = cameraParam.getSupportedFlashModes();
             if( flashModes != null && flashModes.contains(cameraParam.FLASH_MODE_TORCH) ) {
                 cameraParam.setFlashMode(cameraParam.FLASH_MODE_TORCH);
                 camera.setParameters(cameraParam);
+
+                rootLayout.setBackgroundColor(Color.BLACK);
+                txtInstruction.setText(R.string.tap_to_turn_off);
             } else {
-                // TODO: FLASH_MODE_TORCH not supported
+                Toast.makeText(this,R.string.camera_flash_not_supported,Toast.LENGTH_LONG);
+                rootLayout.setBackgroundColor(Color.WHITE);
             }
         } else {
-            // TODO: Flash not supported
+            Toast.makeText(this,R.string.camera_flash_not_supported,Toast.LENGTH_LONG);
+            rootLayout.setBackgroundColor(Color.WHITE);
         }
+        wakeLock.acquire();
+    }
+
+    private void turnFlashLightOff()
+    {
+        if( isSupported_FEATURE_CAMERA_FLASH ) {
+            Camera.Parameters cameraParam = camera.getParameters();
+            List<String> flashModes = cameraParam.getSupportedFlashModes();
+            if( flashModes != null && flashModes.contains(cameraParam.FLASH_MODE_OFF) ) {
+                cameraParam.setFlashMode(cameraParam.FLASH_MODE_OFF);
+                camera.setParameters(cameraParam);
+                txtInstruction.setText(R.string.tap_to_turn_on);
+            } else {
+                rootLayout.setBackgroundColor(Color.BLACK);
+            }
+        } else {
+            rootLayout.setBackgroundColor(Color.BLACK);
+        }
+        wakeLock.release();
     }
 
     @Override
@@ -83,14 +104,25 @@ public class FlashlightActivity extends ActionBarActivity {
         super.onStart();
         camera = Camera.open();
         camera.startPreview();
+        turnFlashLightOn();
     }
 
     @Override
     public void onStop() {
         super.onStop();
+
+        if( isFlashLightOn() ) {
+            turnFlashLightOff();
+        }
+
         camera.stopPreview();
         camera.release();
         camera = null;
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
     }
 
     @Override
@@ -105,10 +137,10 @@ public class FlashlightActivity extends ActionBarActivity {
         // Handle action bar item clicks here. The action bar will
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
+        /*int id = item.getItemId();
         if (id == R.id.action_settings) {
             return true;
-        }
+        }*/
         return super.onOptionsItemSelected(item);
     }
 }
