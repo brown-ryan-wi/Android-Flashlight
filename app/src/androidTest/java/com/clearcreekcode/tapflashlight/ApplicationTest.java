@@ -1,4 +1,4 @@
-package com.clearcreekcode.flashlight;
+package com.clearcreekcode.tapflashlight;
 
 import android.app.Application;
 import android.test.ApplicationTestCase;

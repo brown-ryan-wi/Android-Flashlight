@@ -1,4 +1,4 @@
-package com.clearcreekcode.flashlight;
+package com.clearcreekcode.tapflashlight;
 
 import android.content.Context;
 import android.content.pm.PackageManager;
@@ -10,7 +10,6 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.Button;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -28,15 +27,15 @@ public class FlashlightActivity extends ActionBarActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_flashlight);
+        setContentView(com.clearcreekcode.tapflashlight.R.layout.activity_flashlight);
 
-        rootLayout = (RelativeLayout) findViewById(R.id.rootLayout);
+        rootLayout = (RelativeLayout) findViewById(com.clearcreekcode.tapflashlight.R.id.rootLayout);
         rootLayout.setOnClickListener(btnFlashlightClicked);
 
-        txtInstruction = (TextView) findViewById(R.id.txtInstruction);
+        txtInstruction = (TextView) findViewById(com.clearcreekcode.tapflashlight.R.id.txtInstruction);
 
         PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
-        wakeLock = pm.newWakeLock(PowerManager.FULL_WAKE_LOCK, getString(R.string.do_not_dim_screen));
+        wakeLock = pm.newWakeLock(PowerManager.FULL_WAKE_LOCK, getString(com.clearcreekcode.tapflashlight.R.string.do_not_dim_screen));
 
         isSupported_FEATURE_CAMERA_FLASH = getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA_FLASH);
     }
@@ -69,13 +68,13 @@ public class FlashlightActivity extends ActionBarActivity {
                 camera.setParameters(cameraParam);
 
                 rootLayout.setBackgroundColor(Color.BLACK);
-                txtInstruction.setText(R.string.tap_to_turn_off);
+                txtInstruction.setText(com.clearcreekcode.tapflashlight.R.string.tap_to_turn_off);
             } else {
-                Toast.makeText(this,R.string.camera_flash_not_supported,Toast.LENGTH_LONG);
+                Toast.makeText(this, com.clearcreekcode.tapflashlight.R.string.camera_flash_not_supported,Toast.LENGTH_LONG);
                 rootLayout.setBackgroundColor(Color.WHITE);
             }
         } else {
-            Toast.makeText(this,R.string.camera_flash_not_supported,Toast.LENGTH_LONG);
+            Toast.makeText(this, com.clearcreekcode.tapflashlight.R.string.camera_flash_not_supported,Toast.LENGTH_LONG);
             rootLayout.setBackgroundColor(Color.WHITE);
         }
         wakeLock.acquire();
@@ -89,7 +88,7 @@ public class FlashlightActivity extends ActionBarActivity {
             if( flashModes != null && flashModes.contains(cameraParam.FLASH_MODE_OFF) ) {
                 cameraParam.setFlashMode(cameraParam.FLASH_MODE_OFF);
                 camera.setParameters(cameraParam);
-                txtInstruction.setText(R.string.tap_to_turn_on);
+                txtInstruction.setText(com.clearcreekcode.tapflashlight.R.string.tap_to_turn_on);
             } else {
                 rootLayout.setBackgroundColor(Color.BLACK);
             }
@@ -128,7 +127,7 @@ public class FlashlightActivity extends ActionBarActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.flashlight, menu);
+        getMenuInflater().inflate(com.clearcreekcode.tapflashlight.R.menu.flashlight, menu);
         return true;
     }
 
